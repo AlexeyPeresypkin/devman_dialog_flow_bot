@@ -3,16 +3,19 @@ import os
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import logging
 from dotenv import load_dotenv
+from detect_intent import detect_intent_text
 
-# Enable logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+load_dotenv()
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+project_id = os.environ['PROJECT_ID']
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = \
+    "/home/alex/Downloads/deep-mechanism-340911-b0e1d45bfedc.json"
 
 
-# Define a few command handlers. These usually take the two arguments bot and
-# update. Error handlers also receive the raised TelegramError object in error.
 def start(bot, update):
     """Send a message when the command /start is issued."""
     update.message.reply_text('Hi!')
@@ -25,7 +28,15 @@ def help(bot, update):
 
 def echo(bot, update):
     """Echo the user message."""
-    update.message.reply_text(update.message.text)
+    chat_id = update.message.chat_id
+    text = update.message.text
+    intent_text = detect_intent_text(
+        project_id=project_id,
+        session_id=chat_id,
+        text=text,
+        language_code='ru'
+    )
+    bot.send_message(chat_id=chat_id, text=intent_text)
 
 
 def error(bot, update, error):
@@ -34,7 +45,6 @@ def error(bot, update, error):
 
 
 def main():
-    load_dotenv()
     """Start the bot."""
     # Create the EventHandler and pass it your bot's token.
     updater = Updater(os.environ['TELEGRAM_TOKEN'])
