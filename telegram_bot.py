@@ -1,19 +1,11 @@
 import os
-
+from logging import Handler
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import logging
 from dotenv import load_dotenv
 from detect_intent import detect_intent_text
 
 load_dotenv()
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO)
-
-logger = logging.getLogger(__name__)
-project_id = os.environ['PROJECT_ID']
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = \
-    "/home/alex/Downloads/deep-mechanism-340911-b0e1d45bfedc.json"
 
 
 def start(bot, update):
@@ -30,13 +22,14 @@ def echo(bot, update):
     """Echo the user message."""
     chat_id = update.message.chat_id
     text = update.message.text
-    intent_text = detect_intent_text(
+    intent = detect_intent_text(
         project_id=project_id,
         session_id=chat_id,
         text=text,
         language_code='ru'
     )
-    bot.send_message(chat_id=chat_id, text=intent_text)
+    bot.send_message(chat_id=chat_id,
+                     text=intent.query_result.fulfillment_text)
 
 
 def error(bot, update, error):
@@ -70,6 +63,15 @@ def main():
     # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
 
+
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO)
+
+logger = logging.getLogger(__name__)
+project_id = os.environ['PROJECT_ID']
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = \
+    "/home/alex/Downloads/deep-mechanism-340911-b0e1d45bfedc.json"
 
 if __name__ == '__main__':
     main()
